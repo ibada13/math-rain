@@ -1,40 +1,74 @@
 'use client';
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import gsap from "gsap";
-export default function Game() { 
 
-    useEffect(() => { 
-        const rains = document.querySelectorAll("#rains")
-        const targetdiv = document.getElementById("target") as HTMLDivElement
-        const targetY = targetdiv.getBoundingClientRect().top
-        console.log(targetY)
-        gsap.fromTo(rains, {
-            y:0,
-       }, {
-            y: targetY -100   ,
-            duration: 10,
-           
-        })
-    },[])
+export default function Game(): JSX.Element {
+  
+  const [rainsArray, setRainsArray] = useState<JSX.Element[]>([]);
 
-    return (
-        <div className="bg-pink-500 h-screen w-screen flex flex-col justify-between    ">
-            <div className="flex-grow flex items-start justify-around">
+  
+  const animateNewRains = (newRains: Element[]): void => {
+    gsap.to(newRains, {
+      y: window.innerHeight,
+      duration: 10, 
+      ease: "linear",
+    });
+  };
 
-            <div id="rains" className="bg-blue-500 rounded-md p-2 m-2">rains</div>
-            <div id="rains" className="bg-blue-500 rounded-md p-2 m-2">rains</div>
-            <div id="rains" className="bg-blue-500 rounded-md p-2 m-2">rains</div>
-            <div id="rains" className="bg-blue-500 rounded-md p-2 m-2">rains</div>
-            <div id="rains" className="bg-blue-500 rounded-md p-2 m-2">rains</div>
-            </div>
-            <div>
-                
-                <div id="target" className="p-2 bg-red-500 flex justify-center items-center">
-                    <p className="text-2xl">
-                    hello there hahaha im in danger
-                    </p>
-                </div>
-            </div>
+  
+  const addRains = (count: number): void => {
+    const newRainDivs: JSX.Element[] = [];
+    const currentCount = rainsArray.length;
+
+    for (let i = 0; i < count; i++) {
+      newRainDivs.push(
+          <div
+          key={i}
+          id="rains"
+          className="absolute bg-blue-500 rounded-md p-2 m-10"
+          style={{
+            top: `-10vh`, 
+            left: `${Math.random() * 80}vw`, 
+          }}>
+          rains {currentCount + i + 1}
         </div>
-    )
-} 
+      );
+    }
+
+    
+    setRainsArray((prevRains) => {
+      const updatedRains = [...prevRains, ...newRainDivs];
+      setTimeout(() => {
+        const newRainsElements = document.querySelectorAll("#rains"); 
+        const newRains = Array.from(newRainsElements).slice(currentCount); 
+        animateNewRains(newRains); 
+      }, 0);
+      return updatedRains;
+    });
+  };
+
+  useEffect(() => {
+
+    addRains(2);
+
+    const intervalId = setInterval(() => {
+      addRains(1);
+    }, 5000);
+
+   
+    return () => clearInterval(intervalId);
+  }, []);
+
+  return (
+    <div className="bg-pink-500 h-screen w-screen flex flex-col justify-between">
+      <div className="flex-grow relative items-start justify-around">
+        
+        {rainsArray}
+      </div>
+
+      <div className="p-2 bg-red-500 flex justify-center items-center">
+        <p className="text-2xl">hello there hahaha im in danger</p>
+      </div>
+    </div>
+  );
+}
